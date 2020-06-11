@@ -1,3 +1,4 @@
+```bash
 / # ansible-runner --help
 usage: ansible-runner [-h] [--version] [-p PLAYBOOK | -m MODULE | -r ROLE]
                       [--debug] [--logfile LOGFILE] [-b BINARY] [-i IDENT]
@@ -160,3 +161,4 @@ Ansible Playbook Options:
                         Directory where profiling data files should be saved.
                         Defaults to None (profiling_data folder under private
                         data dir is used in this case).
+```
