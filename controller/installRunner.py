@@ -20,18 +20,20 @@ playbookBasePath = '/kubesphere/playbooks'
 privateDataDir = '/kubesphere/results'
 configFile = '/kubesphere/config/ks-config.yaml'
 
+
+#ks_hook对应着shell-operator镜像的--config对应的配置文件，可以参考https://github.com/freelizhun/shell-operator/blob/arm64/HOOKS.md
 ks_hook = '''
 {
 	"onKubernetesEvent": [{
-		"name": "Monitor configmap",
-		"kind": "ConfigMap",
-		"event": [ "add", "update" ],
+		"name": "Monitor configmap",                 #名字用于区分不同的监听对象
+		"kind": "ConfigMap",                         #监听的k8s资源对象
+		"event": [ "add", "update" ],                #监听ConfigMap的新增与更新操作
 		"objectName": "ks-installer",
 		"namespaceSelector": {
-			"matchNames": ["kubesphere-system"]
+			"matchNames": ["kubesphere-system"]      #作用于kubesphere-system空间
 		},
-		"jqFilter": ".data",
-		"allowFailure": false
+		"jqFilter": ".data",                         #作用于ConfigMap资源对象中，也就是kubesphere-minimal.yaml文件中的ConfigMap资源
+		"allowFailure": false                        #如果执行时出错，则停止5s后再执行
 	}]
 }
 '''
@@ -239,11 +241,11 @@ def preInstallTasks():
 
     for task, paths in preInstallTasks.items():
         pretask = ansible_runner.run(
-            playbook=paths[0],
-            private_data_dir=privateDataDir,
-            artifact_dir=paths[1],
-            ident=str(task),
-            quiet=False
+            playbook=paths[0],                       #要执行的playbook，如/kubesphere/playbooks/preinstall.yaml
+            private_data_dir=privateDataDir,         #整个项目执行的根目录元数据与输出的文件都在该目录下，/kubesphere/results，env/cmdline与env/extravars就在该目录下
+            artifact_dir=paths[1],                   #存放输出结果的目录，在/private_data_dir目录下，如/kubesphere/results/preinstall
+            ident=str(task),                         #存放输出结果的目录，在/private_data_dir目录下，如/kubesphere/results/preinstall/preInstall
+            quiet=False                              #为True则不输出ansible-playbook执行的结果，为False则输出
         )
         if pretask.rc != 0:
             exit()
@@ -265,7 +267,7 @@ def resultInfo():
         info = f.read()
         print(info)
 
-
+#生成/kubesphere/config/ks-config.yaml配置文件，用于后续的ansible_runner.run()函数，相当于执行ansible-playbook -b -e @/kubesphere/config/ks-config.yaml -e @/kubesphere/results/env/extravars /kubesphere/playbooks/preinstall.yaml
 def generateConfig():
     cmdGetConfig = r"kubectl get cm -n kubesphere-system ks-installer -o jsonpath='{.data}' | grep -v '\[\|\]' > /kubesphere/config/ks-config.yaml"
     os.system(cmdGetConfig)
