@@ -1,4 +1,5 @@
 该文件内容对应于/kubesphere/results/preinstall/preInstall/command文件
+```bash
 {
 	"command": [
 		"ansible-playbook",
@@ -38,3 +39,4 @@
 		"RUNNER_ONLY_FAILED_EVENTS": "False"
 	}
 }
+```
